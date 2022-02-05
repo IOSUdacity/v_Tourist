@@ -15,7 +15,8 @@ extension Pictures {
     @nonobjc public class func fetchRequest() -> NSFetchRequest<Pictures> {
         return NSFetchRequest<Pictures>(entityName: "Pictures")
     }
-
+    
+    //should I change to NSData?
     @NSManaged public var picture: NSObject?
     @NSManaged public var loc: Location?
 

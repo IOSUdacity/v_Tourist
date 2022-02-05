@@ -27,7 +27,7 @@ class APICalls: Codable {
            let decoder = JSONDecoder()
             do{
            let decodedData = try decoder.decode(ResponseType.self, from: data!)
-                print("Printing Decoded Data"); print(decodedData)
+                print("Printing Decoded Data");
             
            completion(decodedData, error)
             }catch{

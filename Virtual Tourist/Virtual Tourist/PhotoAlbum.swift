@@ -14,12 +14,6 @@ private let reuseIdentifier = "Cell"
 let group = DispatchGroup()
 
 
-//Maybe instinate a fetched REsults controller and use it directly
-//insitate dfetch reustls controller, then update the bojects at secionts.  stuff for each coolcetoin view delate
-//look up documentatoin of fetched reuslts controller
-//deinit and updates
-
-
 class PhotoAlbum: UIViewController, UICollectionViewDelegate, NSFetchedResultsControllerDelegate{
 
     weak var collectionViewFlowLayouts: UICollectionViewFlowLayout?
@@ -38,35 +32,22 @@ class PhotoAlbum: UIViewController, UICollectionViewDelegate, NSFetchedResultsCo
     var dataController:DataControllerClass!
     var imageArray:[UIImage] = []
     var fetchedResultsCont:NSFetchedResultsController<Pictures>!
-    
+    var pictureArray:[Any] = []
     
     @IBAction func testButton(_ sender: Any) {
         fetchedResultsCont = nil
-     //Add this in?    dataController.viewContext.reset()
-        
         downloadPic()
-
-    }
-
-  
-    
+        setupFetchController()
+        
+      collectionView.reloadData()
+}
     override func viewDidLoad()  {
         super.viewDidLoad()
-        
 
-
-        print("Loading PhotoAlbum with lat/long/pics")
-        print(location.latitude)
-        print(location.longitude)
-        setUpCollectView()
-        // Register cell classes
         self.collectionView.delegate = self
-       // didn't work self.collectionView.collectionViewLayout = self
         self.collectionView.dataSource = self
 
         setupFetchController()
-       
-        
         setHeaderMap(loc:location)
         setUpPhotos()
  
@@ -74,6 +55,7 @@ class PhotoAlbum: UIViewController, UICollectionViewDelegate, NSFetchedResultsCo
     }
     
     override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
         //fetchedResultsCont = nil
     }
 
@@ -81,41 +63,49 @@ class PhotoAlbum: UIViewController, UICollectionViewDelegate, NSFetchedResultsCo
         var sortDescriptors = NSSortDescriptor(key: "picture", ascending: false)
         var fetchRequest = Pictures.fetchRequest()
         fetchRequest.sortDescriptors = [sortDescriptors]
+        print("0")
+        var pred = NSPredicate(format: "loc == %@", location)
+        print("1")
+        fetchRequest.predicate = pred
+        print("2")
         fetchedResultsCont = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: dataController.viewContext, sectionNameKeyPath: nil, cacheName: nil)
         fetchedResultsCont.delegate = self
+        print("3")
+        
         do{
+            print("4")
             try fetchedResultsCont.performFetch()
             print("In Fetched Resutls ")
-            print( fetchedResultsCont.fetchedObjects )
+           
         }catch{
             fatalError("Fatal error in fetch reuslts call \(error.localizedDescription)")
         }
+        
     }
     
     func setUpPhotos(){
         var fetchResults = Pictures.fetchRequest()
         var sortDescriptor = NSSortDescriptor(key:"picture", ascending: false)
         fetchResults.sortDescriptors = [sortDescriptor]
+
+
         
-      //  if let picure =  try? dataController.viewContext.fetch(fetchResults){
-        print("In perform Fetch")
-      //  print(picure)
-            var foundPictures:Bool = true
-            
+        print("Number in fetched results")
+        print(fetchedResultsCont.fetchedObjects!.count)
+        if(fetchedResultsCont!.fetchedObjects!.count > 0){
         if let picure = fetchedResultsCont.fetchedObjects{
             for x in picure{
                 if(x.loc == self.location){
-                    print("type of x.picture"); print(type(of: x.picture))
-                    self.imageArray.append((x.picture as! UIImage))
-                    foundPictures = false
+                 print("In location x in picutres")
+                    collectionView.reloadData()
                 }
             }
-            
-            if(foundPictures){
-                downloadPic()
-            }
         }
-        collectionView.reloadData()
+        }else{
+            print("In download pics")
+            downloadPic()
+        }
+       
     }
     
     func setHeaderMap(loc:Location){
@@ -136,14 +126,14 @@ class PhotoAlbum: UIViewController, UICollectionViewDelegate, NSFetchedResultsCo
         var lat = String(round(location.latitude))
         var long = String(round(location.longitude))
         var radius = "5"
-        var page = String(Int.random(in:1...10))
+        var page = String(Int.random(in:1...3))
         var format = "format=json&nojsoncallback=1"
         var baseURL = "https://www.flickr.com/services/rest/?method=flickr.photos.search&api_key=43fdc91422a379b5907e54449dddda9f&"
         
+        
         var flickURLCall = baseURL + "lat=\(lat)&" + "lon=\(long)&" + "radius=\(radius)&" + "page=\(page)&" + "\(format)"
-        print("consructing URL: " + "\(flickURLCall)")
-        //NEED TO PUT IN THE LAT LONG PAGE, MAKE SURE THESE EQUAL
-    //"https://www.flickr.com/services/rest/?method=flickr.photos.search&api_key=43fdc91422a379b5907e54449dddda9f&lat=37&lon=122&radius=5&format=json&nojsoncallback=1"
+     
+        print(flickURLCall)
         var request:URLRequest = URLRequest(url: URL(string: flickURLCall )!)
         request.httpMethod = "GET"
         APICalls.flickrDownload(urlReq: request, responseStructure: APICalls.flickrPhoto.self) { data, error in
@@ -153,10 +143,12 @@ class PhotoAlbum: UIViewController, UICollectionViewDelegate, NSFetchedResultsCo
                 print(error)
                 return
             }
+            self.pictureArray = []
 
             var server_id:String = ""; var id:String = ""; var secret:String = "";  var imageURL:String = "";
 
             var photoCount = data.photos.photo.count
+            print("Photo count \(photoCount)")
             for x in 0..<photoCount {
             
                 server_id = String(data.photos.photo[x].server)
@@ -173,18 +165,19 @@ class PhotoAlbum: UIViewController, UICollectionViewDelegate, NSFetchedResultsCo
                        return
                    }
                    self.imageArray.append(UIImage(data: data)!)
-                   
+                    self.pictureArray.append(data)
                    if(x == photoCount-1){
                        DispatchQueue.main.async{
-                      self.collectionView.reloadData()
-                      self.savePhotos(photoArray: self.imageArray)
+          
+                           self.savePhotos(photoArray: self.imageArray)
+                           self.collectionView.reloadData()
                            print("Finished saving and the collection view updating")
                        }
                        
                    }
                }
-               print("X: \(x) \nPhotoCount: \(photoCount)")
-               
+        
+           
            }
        
         }
@@ -203,25 +196,26 @@ class PhotoAlbum: UIViewController, UICollectionViewDelegate, NSFetchedResultsCo
 extension PhotoAlbum: UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     func savePhotos(photoArray: [UIImage?]){
         print("Got to savePhotos")
-        DispatchQueue.main.async{
         for x in photoArray{
             var pictureStore =  Pictures(context:  self.dataController.viewContext)
             if let pA = x {
-                //Update CoreSTack
-                pictureStore.picture = pA
+            
+                var pngDataType = pA.pngData()
+                pictureStore.picture = pngDataType as! NSData
                 pictureStore.loc = self.location
-                
-                //Update run time data is already done
+                do {try! self.dataController.viewContext.save()}
+                catch{
+                    print(error.localizedDescription)
+                }
             }
             
         }
-            do {try! self.dataController.viewContext.save()}
-            catch{
-                print(error.localizedDescription)
-            }
-        }
+
+    
         
-        
+        setupFetchController()
+        self.collectionView.reloadData()
+        print("finished saving")
     }
 
 
@@ -240,15 +234,44 @@ extension PhotoAlbum: UICollectionViewDataSource, UICollectionViewDelegateFlowLa
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return imageArray.count
+        if let  numbOfSections = fetchedResultsCont.sections{
+    
+            print("Number of objects in collectionView:\n\(fetchedResultsCont.sections?[section].numberOfObjects)")
+            if(numbOfSections[section].numberOfObjects == 0){
+                return 1
+            }
+            return numbOfSections[section].numberOfObjects
+        }else{
+            print("In if statement for collection view:")
+            return 1
+        }
+        
+    //    return fetchedResultsCont.sections?[section].numberOfObjects ?? 0
     }
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cellPicture" , for:   indexPath) as! pictureViewCells
-        
-        //where we sould pull from the core data
-        cell.image.image = imageArray[indexPath.row]
+        if let  numbOfSections = fetchedResultsCont.sections{
     
+        
+            if(numbOfSections[0].numberOfObjects == 0){
+                cell.activityIndicator.startAnimating()
+                cell.image.isHidden = true
+                return cell
+            }
+        }
+       
+        DispatchQueue.main.async{
+            var corePicture = self.fetchedResultsCont.object(at:indexPath)
+            if let coreImage = corePicture.picture{
+            cell.image.image = UIImage(data: coreImage as! Data)
+                cell.image.isHidden = false
+                let dimension = (self.view.frame.size.width - 6) / 3.0
+                cell.image.bounds = CGRect(x: 0, y: 0, width: dimension, height: dimension)
+            cell.activityIndicator.stopAnimating()
+            }
+        }
         return cell
+            
     }
     func collectionView(_ collectionView: UICollectionView,
                                  didSelectItemAt indexPath: IndexPath){
@@ -273,9 +296,22 @@ extension PhotoAlbum: UICollectionViewDataSource, UICollectionViewDelegateFlowLa
         return CGSize(width: dimension, height: dimension)
       }
     
+    func collectionView(_ collectionView: UICollectionView,
+                          layout collectionViewLayout: UICollectionViewLayout,
+                        minimumInteritemSpacingForSectionAt section: Int) -> CGFloat{
+        print("In minimumInteritemSpacingForSectionAt")
+        return 0
+    }
+    func collectionView(_ collectionView: UICollectionView,
+                          layout collectionViewLayout: UICollectionViewLayout,
+                        minimumLineSpacingForSectionAt section: Int) -> CGFloat{
+        print("In minimumLineSpacingForSectionAt")
+        return 0
+    }
     func deletePictureFromStore(indexPath: IndexPath){
         dataController.viewContext.delete(fetchedResultsCont.object(at: indexPath))
         try? dataController.viewContext.save()
+        collectionView.deleteItems(at: [indexPath])
         print("Picture deleted")
     }
     

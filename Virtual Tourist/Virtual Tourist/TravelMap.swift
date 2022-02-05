@@ -145,14 +145,9 @@ class TravelMap: UIViewController, MKMapViewDelegate, UIGestureRecognizerDelegat
         fetchRequest.sortDescriptors = [sortDescriptors]
         
         if let _results = try? dataController.viewContext.fetch(fetchRequest){
-            print("Printing 1st results from dataControlelr")
-            print(_results)
             for x in _results{
                 if(x.latitude == view.annotation?.coordinate.latitude && x.longitude == view.annotation?.coordinate.longitude){
                     self.performSegue(withIdentifier: "presentAlbum", sender: x)
-                }else{
-                    print("Pin not found to segue")
-                    
                 }
             }
         }
@@ -162,12 +157,12 @@ class TravelMap: UIViewController, MKMapViewDelegate, UIGestureRecognizerDelegat
         do{
       let results = try?  fetchedDataController.performFetch()
             print("1 Printing fetched data results")
-            print(results)
+          //  print(results)
             guard results == nil else{
                 print("Feteched Data was empty"); return
             }
            print(" 2 Printing Fetched Data Results")
-            print(results)
+      //      print(results)
         }catch{
             fatalError("Issue with fetching all the Location\n\(error.localizedDescription)")
         }
@@ -176,8 +171,6 @@ class TravelMap: UIViewController, MKMapViewDelegate, UIGestureRecognizerDelegat
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-   
-       print("Printing test"); print(sender)
        
        if(segue.identifier == "presentAlbum"){
      
@@ -215,92 +208,3 @@ class TravelMap: UIViewController, MKMapViewDelegate, UIGestureRecognizerDelegat
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
- //
- // This delegate method is implemented to respond to taps. It opens the system browser
- // to the URL specified in the annotationViews subtitle property.
- func mapView(mapView: MKMapView, didSelectAnnotationView view: MKAnnotationView){
-     print("this Method was tapped")
-     let destinationVC = PhotoAlbum()
- }
- 
- tapped view delgate function
- 
- 
- func mapView(_ mapView: MKMapView, annotationView view: MKAnnotationView, calloutAccessoryControlTapped control: UIControl) {
-  print("tapped")
-     
-     if control == view.rightCalloutAccessoryView {
-         print("Tapped here")
-
- }
- }
- 
- 
- This is being moved to the setup locatoin
- 
-var fetchedResultsController:NSFetchedResultsController<Location>!
-//Creating a fetch request from the Data Model class, they are of type <>
-let fetchRequest:NSFetchRequest<Location> = Location.fetchRequest()
-//Then we sort the fetch request
-// let sortDescriptor = NSSortDescriptor(key: "latitude", ascending: false)
-//taeks an array of sort descriptor
-//  fetchRequest.sortDescriptors = [sortDescriptor]
-
-if let result = try? dataController.viewContext.fetch(fetchRequest){
-    print("What is in the CoreData")
-    print(result)
-    print("Printing latitude of the reustls")
-    print(result[0].latitude)
-    //save into UI
-}else {
-    print("fetch request did not work")
-}
-//Reload data()
-//Then deleting it
-//when we transitoin we arne' tpopulatin gpicture data we are populating the data class Pcitures.
-*/
-//Changing to Update
-/*
-var fetchRequest =   Location.fetchRequest()
-fetchRequest.fetchLimit = 1
-
-let latDouble = Double(view.annotation!.coordinate.latitude )
-
-let  latPredicate = NSPredicate(format: "latitude == %lf ", 33.22 )
-let longDouble = Double(view.annotation!.coordinate.longitude)
-let longPredicate = NSPredicate(format: "longitude == %lf ", 43.23)
-fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [latPredicate, longPredicate])
-
-/// https://stackoverflow.com/questions/2026649/nspredicate-dont-work-with-double-values-f
-// let destinationVC = PhotoAlbum()
-if let results = try? dataController.viewContext.fetch(fetchRequest){
-    print("Complex Fetch request succesful")
-
-    self.performSegue(withIdentifier: "presentAlbum", sender: results[0])
-}else{
-   print("FetchRequest wwas unsucessful")
-}
-*/
-
-/*let fetchRequest:NSFetchRequest = Location.fetchRequest()
-let sortDescriptor = NSSortDescriptor(key: "latitude", ascending: true)
-fetchRequest.sortDescriptors = [sortDescriptor]
-if let results = try?  dataController.viewContext.fetch(fetchRequest){ */

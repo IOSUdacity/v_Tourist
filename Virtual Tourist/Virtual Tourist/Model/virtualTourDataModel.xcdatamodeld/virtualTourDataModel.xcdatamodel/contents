@@ -6,11 +6,11 @@
         <relationship name="pics" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Pictures" inverseName="loc" inverseEntity="Pictures"/>
     </entity>
     <entity name="Pictures" representedClassName=".Pictures" syncable="YES">
-        <attribute name="picture" optional="YES" attributeType="Transformable"/>
+        <attribute name="picture" optional="YES" attributeType="Binary" allowsExternalBinaryDataStorage="YES"/>
         <relationship name="loc" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Location" inverseName="pics" inverseEntity="Location"/>
     </entity>
     <elements>
         <element name="Location" positionX="-63" positionY="-18" width="128" height="88"/>
-        <element name="Pictures" positionX="557.333251953125" positionY="-13.7906494140625" width="128" height="73"/>
+        <element name="Pictures" positionX="557.333251953125" positionY="-13.7906494140625" width="128" height="59"/>
     </elements>
 </model>
